@@ -13,29 +13,25 @@
             margin: 0;
             padding: 0;
             display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: flex-start;
             min-height: 100vh;
+            flex-direction: row;  /* To align the sidebar and the map side by side */
+        }
+
+        /* Sidebar styles */
+        #sidebar {
+            width: 300px;
+            background-color: #333;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            box-shadow: 3px 0 15px rgba(0, 0, 0, 0.6);
         }
 
         h3 {
             margin: 0;
             color: #fff;
-        }
-
-        #canvas {
-            border: 2px solid #444;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
-        }
-
-        #filter-container {
-            background-color: #333;
-            padding: 20px;
-            margin-top: 20px;
-            width: 300px;
-            border-radius: 8px;
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.6);
+            padding-bottom: 10px;
         }
 
         input[type="number"] {
@@ -70,17 +66,44 @@
             background-color: #3399ff;
         }
 
+        /* Tooltip styles */
+        #tooltip {
+            position: absolute;
+            background-color: #333;
+            color: #fff;
+            padding: 5px;
+            border-radius: 5px;
+            font-size: 14px;
+            display: none;
+            pointer-events: none;
+        }
+
+        /* Map container */
+        #map-container {
+            flex-grow: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        #canvas {
+            border: 2px solid #444;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.6);
+        }
+
         /* Styling for larger screens */
         @media (min-width: 768px) {
-            #filter-container {
-                width: 400px;
+            #sidebar {
+                width: 350px;
             }
         }
     </style>
 </head>
 <body>
 
-    <div id="filter-container">
+    <!-- Sidebar for filters -->
+    <div id="sidebar">
         <h3>Filter Coordinates</h3>
         <label for="x_min">X Min:</label>
         <input type="number" id="x_min" value="0"><br><br>
@@ -93,7 +116,11 @@
         <button onclick="applyFilter()">Apply Filter</button>
     </div>
 
-    <canvas id="canvas" width="1000" height="1000"></canvas>
+    <!-- Map container -->
+    <div id="map-container">
+        <canvas id="canvas" width="1000" height="1000"></canvas>
+        <div id="tooltip"></div> <!-- Tooltip for showing coordinates -->
+    </div>
 
     <script>
         const canvas = document.getElementById("canvas");
@@ -115,7 +142,7 @@
             .then(data => {
                 coordinates = data.split("\n").map(line => {
                     const [x, y] = line.split(",").map(Number);
-                    return [x, y];
+                    return { x, y };
                 });
                 plotCoordinates(coordinates);
             })
@@ -124,7 +151,7 @@
         // Plot coordinates on the canvas
         function plotCoordinates(coords) {
             coords.forEach(coord => {
-                const [x, y] = coord;
+                const { x, y } = coord;
                 ctx.beginPath();
                 ctx.arc(x, y, 5, 0, Math.PI * 2);
                 ctx.fillStyle = "#66b3ff"; // Blue color for the dots
@@ -145,9 +172,48 @@
 
             // Filter coordinates and plot the filtered points
             const filteredCoords = coordinates.filter(coord => 
-                coord[0] >= xMin && coord[0] <= xMax && coord[1] >= yMin && coord[1] <= yMax
+                coord.x >= xMin && coord.x <= xMax && coord.y >= yMin && coord.y <= yMax
             );
             plotCoordinates(filteredCoords);
+        }
+
+        // Show coordinates on hover or click
+        canvas.addEventListener("mousemove", function(event) {
+            const rect = canvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            let found = false;
+
+            coordinates.forEach(coord => {
+                const distance = Math.sqrt(Math.pow(x - coord.x, 2) + Math.pow(y - coord.y, 2));
+
+                // If the mouse is close to a coordinate point
+                if (distance < 10) {
+                    showTooltip(event, coord);  // Show the tooltip with coordinates
+                    found = true;
+                }
+            });
+
+            // Hide the tooltip if no point is near
+            if (!found) {
+                hideTooltip();
+            }
+        });
+
+        // Function to display tooltip with coordinates
+        function showTooltip(event, coord) {
+            const tooltip = document.getElementById("tooltip");
+            tooltip.style.left = event.clientX + 10 + "px";
+            tooltip.style.top = event.clientY + 10 + "px";
+            tooltip.style.display = "block";
+            tooltip.textContent = `X: ${coord.x}, Y: ${coord.y}`;
+        }
+
+        // Hide the tooltip
+        function hideTooltip() {
+            const tooltip = document.getElementById("tooltip");
+            tooltip.style.display = "none";
         }
     </script>
 
