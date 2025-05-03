@@ -36,7 +36,7 @@ function plotCoordinates(coords, color) {
         const drawY = canvas.height - y;
 
         ctx.beginPath();
-        ctx.arc(x, drawY, 5, 0, Math.PI * 2);
+        ctx.arc(x, drawY, 3, 0, Math.PI * 2);
         ctx.fillStyle = color;
         ctx.fill();
     });
