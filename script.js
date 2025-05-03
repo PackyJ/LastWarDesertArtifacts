@@ -10,7 +10,7 @@ let coordinatesSet = [
 
 // Load and draw the image on the canvas
 const img = new Image();
-img.src = "your-image.png";  // Replace with the path to your image
+img.src = "Season3.png";  // Replace with the path to your image
 img.onload = function() {
     ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
     plotAllCoordinates();  // Plot the initial coordinates
