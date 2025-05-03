@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Map with Coordinates Filter</title>
+    <style>
+        #canvas {
+            border: 1px solid #000;
+        }
+        #filter-container {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="filter-container">
+        <h3>Filter Coordinates</h3>
+        <label for="x_min">X Min:</label>
+        <input type="number" id="x_min" value="0"><br><br>
+        <label for="x_max">X Max:</label>
+        <input type="number" id="x_max" value="1000"><br><br>
+        <label for="y_min">Y Min:</label>
+        <input type="number" id="y_min" value="0"><br><br>
+        <label for="y_max">Y Max:</label>
+        <input type="number" id="y_max" value="1000"><br><br>
+        <button onclick="applyFilter()">Apply Filter</button>
+    </div>
+
+    <canvas id="canvas" width="1000" height="1000"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // This will hold the coordinates loaded from the text file
+        let coordinates = [];
+
+        // Load and draw the image on the canvas
+        const img = new Image();
+        img.src = "Season3.png";  // Replace with the path to your image
+        img.onload = function() {
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            plotCoordinates(coordinates);  // Plot the initial coordinates
+        };
+
+        // Fetch and load coordinates from the text file
+        fetch("Coordinates4.txt")  // Replace with the path to your text file
+            .then(response => response.text())
+            .then(data => {
+                // Parse the data from the text file
+                coordinates = data.split("\n").map(line => {
+                    const [x, y] = line.split(",").map(Number);
+                    return [x, y];
+                });
+                // Once coordinates are loaded, plot them on the image
+                plotCoordinates(coordinates);
+            })
+            .catch(error => console.error("Error loading coordinates:", error));
+
+        // Plot coordinates on the canvas
+        function plotCoordinates(coords) {
+            coords.forEach(coord => {
+                const [x, y] = coord;
+                ctx.beginPath();
+                ctx.arc(x, y, 5, 0, Math.PI * 2);
+                ctx.fillStyle = "blue";
+                ctx.fill();
+            });
+        }
+
+        // Apply filter to show only coordinates within the specified range
+        function applyFilter() {
+            const xMin = parseInt(document.getElementById('x_min').value);
+            const xMax = parseInt(document.getElementById('x_max').value);
+            const yMin = parseInt(document.getElementById('y_min').value);
+            const yMax = parseInt(document.getElementById('y_max').value);
+
+            // Clear the canvas and redraw the image
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+            // Filter coordinates and plot the filtered points
+            const filteredCoords = coordinates.filter(coord => 
+                coord[0] >= xMin && coord[0] <= xMax && coord[1] >= yMin && coord[1] <= yMax
+            );
+            plotCoordinates(filteredCoords);
+        }
+    </script>
+
+</body>
+</html>
