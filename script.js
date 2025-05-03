@@ -98,10 +98,15 @@ canvas.addEventListener("mousemove", function (event) {
 // Tooltip display
 function showTooltip(event, coord) {
     const tooltip = document.getElementById("tooltip");
-    tooltip.style.left = event.clientX + 10 + "px";
-    tooltip.style.top = event.clientY + 10 + "px";
+    const rect = canvas.getBoundingClientRect();
+
+    const x = event.clientX - rect.left;
+    const y = event.clientY - rect.top;
+
+    tooltip.style.left = `${rect.left + x + 10}px`;
+    tooltip.style.top = `${rect.top + y + 10}px`;
     tooltip.style.display = "block";
-    tooltip.textContent = `X: ${coord.x}, Y: ${coord.y}`; // Y is already correct since 0 is bottom
+    tooltip.textContent = `X: ${coord.x}, Y: ${coord.y}`;
 }
 
 function hideTooltip() {
